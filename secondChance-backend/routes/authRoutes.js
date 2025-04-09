@@ -4,6 +4,8 @@ const connectToDatabase = require('../models/db');
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const logger = require('../logger');
+const bcrypt = require('bcryptjs/dist/bcrypt');
+require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -58,6 +60,55 @@ router.post('/register', async (req, res) => {
     } catch (e) {
         logger.error(`Registration error: ${e.message}`);
         return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.post('/login', async (req, res) => {
+    try {
+
+        //validation
+        const {email, password} = req.body;
+        if (!email || !password) {
+            logger.error('Email or password not provided');
+            return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        // Task 1: Connect to `secondChance` in MongoDB through `connectToDatabase` in `db.js`.
+        const db = await connectToDatabase();
+        // Task 2: Access MongoDB `users` collection
+        const collection = db.collection('users')
+        // Task 3: Check for user credentials in database
+        const user = await collection.findOne({email});
+        if(!user){
+            logger.warn('user not found');
+            return res.status(401).json({error: "Invalid Credentials"});
+        }
+
+        // Task 4: Check if the password matches the encrypted password and send appropriate message on mismatch
+        const isMatch = await bcrypt.compare(password, user.password);
+        // Task 7: Send appropriate message if the user is not found
+        if(!isMatch){
+            logger.warn('Password Mismatch');
+            return res.status(401).json({error: "Invalid Credentials"});
+        }
+
+        // Task 6: Create JWT authentication if passwords match with user._id as payload
+        const payload = {
+            user: {
+                id: user._id.toString(),
+            },
+        };
+        const authtoken = jwt.sign(payload, JWT_SECRET);
+
+        // Task 5: Fetch user details from a database
+        const userName = `${user.firstName}`;
+        const userEmail = `${user.email}`;
+
+        logger.info(`User logged in: ${userEmail}`);
+
+        res.json({authtoken, userName, userEmail });
+    } catch (e) {
+         return res.status(500).send('Internal server error');
     }
 });
 
