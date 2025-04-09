@@ -27,13 +27,14 @@ router.get('/', async (req, res, next) => {
     logger.info('/ called');
     try {
         //Step 2: task 1 - insert code here
+        const db = await connectToDatabase();
         //Step 2: task 2 - insert code here
-        //Step 2: task 3 - insert code here
-        //Step 2: task 4 - insert code here
-
         const collection = db.collection("secondChanceItems");
+        //Step 2: task 3 - insert code here
         const secondChanceItems = await collection.find({}).toArray();
+        //Step 2: task 4 - insert code here
         res.json(secondChanceItems);
+
     } catch (e) {
         logger.console.error('oops something went wrong', e)
         next(e);
@@ -41,19 +42,39 @@ router.get('/', async (req, res, next) => {
 });
 
 // Add a new item
-router.post('/', {Step 3: Task 6 insert code here}, async(req, res,next) => {
+router.post('/', upload.single('file'), async(req, res, next) => {
     try {
+        // Task 1: Connect to DB
+        const db = await connectToDatabase();
 
-        //Step 3: task 1 - insert code here
-        //Step 3: task 2 - insert code here
-        //Step 3: task 3 - insert code here
-        //Step 3: task 4 - insert code here
-        //Step 3: task 5 - insert code here
-        res.status(201).json(secondChanceItem.ops[0]);
+        // Task 2: Get the collection
+        const collection = db.collection("secondChanceItems");
+
+        // Task 3: Get request body
+        let secondChanceItem = req.body;
+
+        // Task 4: Get last ID
+        const lastItemArr = await collection.find().sort({ id: -1 }).limit(1).toArray();
+        const lastId = lastItemArr.length > 0 ? parseInt(lastItemArr[0].id) : 0;
+        secondChanceItem.id = (lastId + 1).toString();
+
+        // Task 5: Add current date (in ISO format)
+        secondChanceItem.date_added = new Date();
+
+        // Task 7: Add image URL if available
+        if (req.file) {
+            secondChanceItem.imageUrl = `/images/${req.file.originalname}`;
+        }
+
+        // Task 6: Insert to DB
+        const result = await collection.insertOne(secondChanceItem);
+
+        res.status(201).json(result.ops[0]); // or result.insertedId if needed
     } catch (e) {
         next(e);
     }
 });
+
 
 // Get a single secondChanceItem by ID
 router.get('/:id', async (req, res, next) => {
