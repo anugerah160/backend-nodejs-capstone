@@ -3,9 +3,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const pinoLogger = require('./logger');
-
 const connectToDatabase = require('./models/db');
 const {loadData} = require("./util/import-mongo/index");
+const secondChanceItemsRoutes = require('./routes/secondChanceItemsRoutes');
 
 
 const app = express();
@@ -22,6 +22,7 @@ connectToDatabase().then(() => {
 app.use(express.json());
 
 // Route files
+app.use('/api/secondchance/items', secondChanceItemsRoutes);
 
 // authRoutes Step 2: import the authRoutes and store in a constant called authRoutes
 //{{insert code here}}
