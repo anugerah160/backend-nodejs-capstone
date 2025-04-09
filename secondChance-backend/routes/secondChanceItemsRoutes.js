@@ -7,7 +7,7 @@ const connectToDatabase = require('../models/db');
 const logger = require('../logger');
 
 // Define the upload directory path
-const directoryPath = 'public/images';
+const directoryPath = '../public/images';
 
 // Set up storage for uploaded files
 const storage = multer.diskStorage({
@@ -59,7 +59,8 @@ router.post('/', upload.single('file'), async(req, res, next) => {
         secondChanceItem.id = (lastId + 1).toString();
 
         // Task 5: Add current date (in ISO format)
-        secondChanceItem.date_added = new Date();
+        // secondChanceItem.date_added = new Date();
+        secondChanceItem.date_added = Math.floor(Date.now() / 1000);
 
         // Task 7: Add image URL if available
         if (req.file) {
