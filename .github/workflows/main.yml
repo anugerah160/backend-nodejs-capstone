@@ -1,4 +1,4 @@
-name: 'Lint and Auto-Fix JS'
+name: 'CI/CD'
 
 on:
   push:
@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [master, main]
 
+permissions:
+  contents: write
+
 jobs:
   lint:
-    name: Lint and Auto-Fix JavaScript Files
+    name: Lint JavaScript Files
     runs-on: ubuntu-latest
 
     steps:
